@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración de Servidor Web</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #6a7984;
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #e0e0e0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            margin-top: 0;
+        }
+        h2 {
+            margin-top: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+        code {
+            background-color: #ecf0f1;
+          
+            border-radius: 3px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #e74c3c;
+        }
+        
+        div.toolbar-item button {
+            cursor: pointer !important;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .note {
+            background-color: #f9f9f9;
+            border-left: 4px solid #3498db;
+            padding: 10px;
+            margin: 20px 0;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Configuración de Servidor Web en Linux<br>DIGITALOCEAN VPS u otros</h1>
+        <p>Guía profesional para configurar un servidor web en Linux con Apache, PHP 8, MariaDB y dominios virtuales <code>.test</code>.</p>
+        <p>Crea tu primer VPS, consigue tu crédito de <code>$100</code> y <code>200$</code> en DigitalOcean: <code>https://m.do.co/c/4d7e9f86d859</code>, <code>https://m.do.co/c/9fce3870468c</code> llenar todos los datos mas la tarjeta VISA activado compra por internet.</p>
+
+        <h2>1. Crear grupo 'cas' y asignar user 'dev' <code>opcional</code></h2>
+        <pre class="line-numbers"><code class="language-batch">groupadd cas 
+useradd -g cas -m dev 
+passwd dev 
+New password -> tupassword</code></pre>
+
+        <div class="note">
+            <p><strong>Nota:</strong> Crear un nuevo grupo y usuario con permisos específicos.</p>
+        </div>
+
+        <h2>2. Actualizar el sistema</h2>
+        <p>Primero, asegúrate de que tu sistema esté actualizado.</p>
+        <pre class="line-numbers"><code class="language-batch">sudo apt update
+sudo apt upgrade -y</code></pre>
+
+        <h2>3. Cambiar el timezone</h2>
+        <p>Verificar el timezone</p>
+        <pre class="line-numbers"><code class="language-batch">timedatectl 
+timedatectl set-timezone America/La_Paz</code></pre>
+
+        <h2>4. Ver el hostname y instalar net tools</h2>
+        <p>Verificar el hostname</p>
+        <pre class="line-numbers"><code class="language-batch">hostnamectl</code></pre>
+        <p>Instalar net-tools</p>
+        <pre class="line-numbers"><code class="language-batch">sudo apt install net-tools</code></pre>
+
+        <h2>5. Instalar Apache</h2>
+        <p>Instala el servidor web Apache.</p>
+        <pre class="line-numbers"><code class="language-batch">sudo apt install apache2 -y</code></pre>
+        <p>Habilita y arranca el servicio:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo systemctl enable apache2
+sudo systemctl start apache2</code></pre>
+        <p>Verifica que Apache esté funcionando:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo systemctl status apache2</code></pre>
+        <code>Tecla '<b>Q</b>' para salir</code>
+
+        <h2>6. Instalar PHP 8</h2>
+        <p>Agrega el repositorio de PHP 8:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo apt install software-properties-common -y
+sudo add-apt-repository ppa:ondrej/php -y
+sudo apt update</code></pre>
+        <p>Instala PHP 8 y los módulos necesarios:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo apt install php8.2 php8.2-cli php8.2-common php8.2-mysql php8.2-curl php8.2-gd php8.2-mbstring php8.2-xml php8.2-zip -y</code></pre>
+        <p>Instala PHP sin versionar y los módulos necesarios:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo apt install php php-cli php-common php-mysql php-curl php-gd php-mbstring php-xml php-zip -y</code></pre>
+        <p>Verifica la instalación de PHP:</p>
+        <pre class="line-numbers"><code class="language-batch">php -v</code></pre>
+        <code>sudo systemctl restart apache2</code>
+
+        <h2>7. Instalar  y configurar MariaDB</h2>
+        <p>Instala MariaDB:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo apt install mariadb-server mariadb-client -y</code></pre>
+        <p>Habilita y arranca el servicio:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo systemctl enable mariadb
+sudo systemctl start mariadb</code></pre>
+        <p>Verifica que mariadb esté funcionando:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo systemctl status mariadb</code></pre>
+        <code>Tecla '<b>Q</b>' para salir</code>
+
+        <p>Permitir conexiones remotas a tu servidor MySQL o MariaDB, cambiar bind-address a 0.0.0.0 <code><b>opcional</b></code></p>
+        <pre class="line-numbers"><code class="language-batch">sudo nano /etc/mysql/mariadb.conf.d/50-server.cnf</code></pre>
+        <code>Guarda y cierra el archivo (Ctrl + O, Enter, Ctrl + X</code><br>
+        <code>sudo systemctl restart mariadb</code>
+
+        <p>Permitir conexiones remotas en el firewall <code><b>opcional</b></code></p>
+        <pre class="line-numbers"><code class="language-batch">sudo ufw allow 3306/tcp
+sudo ufw reload</code></pre>
+        <p>Verificar que MySQL escuche en <code>0.0.0.0</code></p>
+        <pre class="line-numbers"><code class="language-batch">sudo netstat -tulnp | grep mysql</code></pre>
+        <code>Deberías ver una línea con 0.0.0.0:3306, indicando que acepta conexiones de cualquier IP.</code>
+
+        <p>Permitir acceso remoto a un usuario <code><b>opcional</b></code></p>
+        <pre class="line-numbers"><code class="language-batch">GRANT ALL PRIVILEGES ON *.* TO 'tu_usuario'@'%' IDENTIFIED BY 'tu_contraseña' WITH GRANT OPTION;
+FLUSH PRIVILEGES;</code></pre>
+        <div class="note">
+            <p><strong>Nota:</strong> Permitir conexiones remotas puede ser un riesgo de seguridad si el servidor está expuesto a internet. Es recomendable restringir accesos por IP o usar túneles SSH.</p>
+        </div>
+
+        <p>Configura la seguridad de MariaDB:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo mysql_secure_installation</code></pre>
+        <code>Presionar 2 veces '<b>Y</b>', ingresa tu contraseña, presionar 4 veces '<b>Y</b>'</code>
+
+        <p>Conectar a mysql MariaDB:</p>
+        <pre class="line-numbers"><code class="language-batch">mysql -u root -p -A 
+use mysql;
+select user,password,host from user;</code></pre>
+
+        <p>Para cambiar privilegios:</p>
+        <pre class="line-numbers"><code class="language-batch">grant all privileges on *.* to 'root'@'%' identified by 'tucontraseña' with grant option; 
+select user,password,host from user;
+flush privileges;</code></pre>
+<code>Escribir '<b>exit</b>' para salir de mysql</code>
+
+        <h2>8. Configurar permisos de carpetas</h2>
+        <p>Asegúrate de que las carpetas necesarias tengan los permisos correctos:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo chown -R www-data:www-data /var/www/html/tuproyecto
+sudo chmod -R 755 /var/www/html/tuproyecto</code></pre>
+        <p>Si necesitas permisos de escritura para ciertas carpetas:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo chmod -R 775 /var/www/html/tuproyecto/carpeta_necesaria</code></pre>
+        <code>sudo systemctl restart apache2</code>
+
+        <h2>9. Crear un dominio virtual <code>.test</code></h2>
+        <p>Crea un archivo de configuración para tu dominio en <code>/etc/apache2/sites-available/</code>:</p>
+        <div class="note">
+            <p><strong>Nota:</strong> En el directorio por defecto para servidores web como Apache /var/www/html/ <b>(Recomendado para producción)</b><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;En el directorio /home/tuusuario/proyectos/ <b>(Recomendado para desarrollo)</b></p>
+        </div>
+        <pre class="line-numbers"><code class="language-batch">sudo nano /etc/apache2/sites-available/tuproyecto.test.conf</code></pre>
+        <p>Agrega el siguiente contenido para modo <strong>Produccion</strong>:</p>
+        <pre class="line-numbers"><code class="language-batch">&lt;VirtualHost *:80&gt;
+    ServerName tuproyecto.test
+    ServerAlias www.tuproyecto.test
+    DocumentRoot /var/www/html/tuproyecto
+
+    &lt;Directory /var/www/html/tuproyecto&gt;
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    &lt;/Directory&gt;
+
+    ErrorLog ${APACHE_LOG_DIR}/tuproyecto_error.log
+    CustomLog ${APACHE_LOG_DIR}/tuproyecto_access.log combined
+&lt;/VirtualHost&gt;</code></pre>
+
+        <p>Agrega el siguiente contenido para modo <strong>Desarrollo</strong>:</p>
+        <pre class="line-numbers"><code class="language-batch">&lt;VirtualHost *:80&gt;
+    ServerName tuproyecto.test
+    ServerAlias www.tuproyecto.test
+    DocumentRoot /home/tuusuario/proyectos/tuproyecto
+
+    &lt;Directory /home/tuusuario/proyectos/tuproyecto&gt;
+        AllowOverride All
+        Require all granted
+    &lt;/Directory&gt;
+
+    ErrorLog ${APACHE_LOG_DIR}/tuproyecto_error.log
+    CustomLog ${APACHE_LOG_DIR}/tuproyecto_access.log combined
+&lt;/VirtualHost&gt;</code></pre>
+
+        <code>Guarda y cierra el archivo (Ctrl + O, Enter, Ctrl + X</code>
+        <p>Habilita el sitio, activa el módulo rewrite y reinicia Apache:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo a2ensite tuproyecto.test.conf
+sudo a2enmod rewrite
+sudo systemctl reload apache2</code></pre>
+        <p>Configura el archivo <code>/etc/hosts</code>:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo nano /etc/hosts</code></pre>
+        <p>Agrega la siguiente línea:</p>
+        <pre class="line-numbers"><code class="language-batch">127.0.0.1   tuproyecto.test</code></pre>
+
+        <p>Verifica la configuración de Apache:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo apache2ctl configtest</code></pre>
+        <code>Si todo está correcto, verás <b>Syntax OK</b></code><br>
+        <code>sudo systemctl restart apache2</code>
+
+
+        <h2>10. Probar la configuración</h2>
+        <p>Abre tu navegador y visita <a href="http://tuproyecto.test" target="_blank">http://tuproyecto.test</a>.</p>
+
+        <h2>11. Verificar la conexión a MariaDB</h2>
+        <p>Accede a MariaDB:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo mysql -u root -p</code></pre>
+        <p>Crea una base de datos y un usuario:</p>
+        <pre class="line-numbers"><code class="language-batch">CREATE DATABASE tuproyecto_db;
+CREATE USER 'tuproyecto_user'@'localhost' IDENTIFIED BY 'tu_contraseña';
+GRANT ALL PRIVILEGES ON tuproyecto_db.* TO 'tuproyecto_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;</code></pre>
+
+        <h2>12. Cambiar la Contraseña desde MySQL/MariaDB</h2>
+        <p>Accede a MariaDB:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo mysql -u root -p
+USE mysql;</code></pre>
+        <p>Actualizar la contraseña de MySQL/MariaDB:</p>
+        <pre class="line-numbers"><code class="language-batch">ALTER USER 'root'@'localhost' IDENTIFIED BY 'NuevaContraseña';
+FLUSH PRIVILEGES;
+EXIT;</code></pre>
+
+        <h2>13. Reiniciar servicios</h2>
+        <p>Reinicia los servicios:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo systemctl restart apache2
+sudo systemctl restart mariadb</code></pre>
+
+        <h2>14. Verificación final</h2>
+        <p>Accede a <a href="http://tuproyecto.test" target="_blank">http://tuproyecto.test</a> en tu navegador.</p>
+        <p>Si hay errores, revisa los logs de Apache:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo tail -f /var/log/apache2/error.log</code></pre>
+
+        <h2>15. Instalar certificados SSL <code>opcional</code></h2>
+        <p><b>(OBLIGATORIO)</b> debe tener un dominio (ejemplo: .com .net .online ) y tener el puerto habilitado 80, 443</p>
+        <pre class="line-numbers"><code class="language-batch">sudo nano /etc/apache2/sites-available/</code></pre>
+        <p>Crear archivo certificado.conf</p>
+        <pre class="line-numbers"><code class="language-batch">cat > certificado.conf</code></pre>
+        <code>Tecla '<b>Ctrl + D</b>' para salir</code>
+        <p>Crear VirtualHost en certificado.conf</p>
+        <pre class="line-numbers"><code class="language-batch">nano certificado.conf</code></pre>
+        <p>Agrega el siguiente contenido:</p>
+        <pre class="line-numbers"><code class="language-batch">&lt;VirtualHost *:80&gt;
+    ServerName tudominio.com
+    ServerAlias www.tudominio.com
+    DocumentRoot /home/tuusuario/www/tuproyecto
+
+    &lt;Directory /home/tuusuario/www/tuproyecto&gt;
+        AllowOverride All
+        Require all granted
+    &lt;/Directory&gt;
+
+    ErrorLog ${APACHE_LOG_DIR}/tuproyecto_error.log
+    CustomLog ${APACHE_LOG_DIR}/tuproyecto_access.log combined
+&lt;/VirtualHost&gt;</code></pre>
+
+        <code>Guarda y cierra el archivo (Ctrl + O, Enter, Ctrl + X</code><br>
+        <code>sudo service apache2 restart</code>
+
+        <p>Instalar certificado SSL con certbot:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo apt install certbot python3-certbot-apache</code></pre>
+        <code>Presionar 'Y' y esperar..</code>
+        <p>Para habilitar SSL:</p>
+        <pre class="line-numbers"><code class="language-batch">sudo a2enmod ssl</code></pre>
+        <p>Instalar certbot para los dominios:</p>
+        <pre class="line-numbers"><code class="language-batch">certbot --apache -d tudominio.com -d www.tudominio.com</code></pre>
+        <code>Enter, ingresar cualquier email info@tudominio.com, presionar 'Y', would you be willing to..N <br>sudo systemctl restart apache2</code>
+        <p>Ver el estado y habilitar certbot:</p>
+        <pre class="line-numbers"><code class="language-batch">cd /etc/apache2/sites-available/
+sudo systemctl status certbot
+sudo systemctl enable --now certbot</code></pre>
+
+        <h2>16. Instalar ufw firewall <code>opcional</code></h2>
+        <pre class="line-numbers"><code class="language-batch">sudo apt install ufw -y
+sudo systemctl enable ufw --now
+sudo systemctl status ufw</code></pre>
+        <p>Restringir con firewall</p>
+        <pre class="line-numbers"><code class="language-batch">ufw app list
+ufw allow OpenSSH
+ufw status
+ufw enable
+Y</code></pre>
+
+        <h2>17. Evitar que se listen los archivos y directorios en tu servidor web</h2>
+        <p>Editar el archivo de configuración de Apache</p>
+        <pre class="line-numbers"><code class="language-batch">sudo nano /etc/apache2/apache2.conf</code></pre>
+        <p>Por ejemplo, si quieres deshabilitar la indexación en /var/www/html, busca algo como:</p>
+        <pre class="line-numbers"><code class="language-batch">&lt;Directory /var/www/html&gt;
+    Options Indexes FollowSymLinks
+    AllowOverride None
+    Require all granted
+&lt;/Directory&gt;</code></pre>
+        <p>Cambia Options <b>Indexes FollowSymLinks</b> a Options <b>FollowSymLinks</b> (elimina Indexes). Esto deshabilitará la indexación de directorios.</p>
+        <pre class="line-numbers"><code class="language-batch">&lt;Directory /var/www/html&gt;
+    Options FollowSymLinks
+    AllowOverride None
+    Require all granted
+&lt;/Directory&gt;</code></pre>
+       <p>Reiniciar Apache</p>
+        <pre class="line-numbers"><code class="language-batch">sudo systemctl restart apache2</code></pre>
+
+        <div class="note">
+            <p><strong>Nota:</strong> Asegúrate de ajustar las rutas y nombres según tu configuración específica.</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-batch.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+</body>
+</html>

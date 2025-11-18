@@ -1,0 +1,16 @@
+[
+  {
+    "slug": "guia-servidor-linux",
+    "title": "Guía de servidor LINUX desde cero",
+    "description": "Guía paso a paso para configurar un servidor Linux.",
+    "category": "DevOps",
+    "file": "/html/guia_servidor_LINUX.html"
+  },
+  {
+    "slug": "docker-php-mysql-apache",
+    "title": "Docker desde cero en tu proyecto PHP, MySQL y Apache",
+    "description": "Aprende a configurar Docker para un proyecto con PHP, MySQL y Apache.",
+    "category": "DevOps",
+    "file": "/html/Guia_de_docker_desde_cero_en_tu_proyecto_php_mysql.html"
+  }
+]

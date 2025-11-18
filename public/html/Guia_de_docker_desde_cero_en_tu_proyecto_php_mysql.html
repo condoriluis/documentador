@@ -1,0 +1,235 @@
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+
+                        
+        Guía de Docker desde cero en tu Proyecto PHP,MySQL - Documentación
+
+                
+    </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #6a7984;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #e0e0e0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #2c3e50;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            margin-top: 0;
+        }
+
+        h2 {
+            margin-top: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+
+        code {
+            background-color: #ecf0f1;
+
+            border-radius: 3px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #e74c3c;
+        }
+
+        div.toolbar-item button {
+            cursor: pointer !important;
+        }
+
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .note {
+            background-color: #f9f9f9;
+            border-left: 4px solid #3498db;
+            padding: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        
+                
+        <h1>Guía de Docker desde cero en tu Proyecto PHP,MySQL</h1>
+                
+        <h2>1️⃣ Instalar Docker</h2>
+        <p>Descarga e instala Docker desde Docker Desktop según tu sistema operativo.</p>
+        <pre class="line-numbers"><code class="language-batch">docker --version</code></pre>
+
+                <div class="note">
+            <p><strong>Nota:</strong> Verifica que Docker está instalado ejecutando en la terminal:</p>
+        </div>
+
+                        
+        <h2>2️⃣ Crear un archivo Dockerfile para PHP + Apache</h2>
+        <p>📌 Crea un archivo llamado Dockerfile en la raíz de tu proyecto y añade:</p>
+        <pre class="line-numbers"><code class="language-batch"># Usa la imagen PHP con Apache
+FROM php:8.2-apache
+
+# Habilita mod_rewrite de Apache
+RUN a2enmod rewrite
+
+# Instala extensiones necesarias para PHP y Apache
+RUN docker-php-ext-install mysqli pdo pdo_mysql
+
+# Configura el directorio de trabajo
+WORKDIR /var/www/html
+
+# Instalar Composer (si lo usas)
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Copia el código del proyecto dentro del contenedor
+COPY . /var/www/html
+
+# Establece permisos adecuados para los archivos
+RUN chown -R www-data:www-data /var/www/html
+
+# Configura el archivo .htaccess para permitir el uso de mod_rewrite
+COPY .htaccess /var/www/html/.htaccess
+
+# Configura Apache para permitir .htaccess
+RUN echo &#039;ServerName localhost&#039; &gt;&gt; /etc/apache2/apache2.conf
+
+# Expón el puerto 80 de Apache
+EXPOSE 80</code></pre>
+
+                        
+        <h2>3️⃣ Crear un archivo docker-compose.yml</h2>
+        <p>Este archivo configura los servicios que tu aplicación necesita (PHP + Apache, MySQL y phpMyAdmin).  📌 Crea un archivo llamado docker-compose.yml y añade:</p>
+        <pre class="line-numbers"><code class="language-batch">version: &#039;3.8&#039;
+
+services:
+  web:
+    build: .
+    container_name: php_apache
+    ports:
+      - &quot;8080:80&quot;
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db
+    networks:
+      - app_network
+
+  db:
+    image: mariadb:10.6.8
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: &quot;yes&quot;   #quitar en modo producción
+      # MYSQL_ROOT_PASSWORD: &quot;&quot;           #habilitar y agregar contraseña en modo producción
+      MYSQL_DATABASE: nombre_db
+      MYSQL_USER: user_db
+      MYSQL_PASSWORD: &quot;&quot;                  #agregar contraseña en modo producción
+    ports:
+      - &quot;3306:3306&quot;
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./backup.sql:/docker-entrypoint-initdb.d/backup.sql
+    networks:
+      - app_network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    ports:
+      - &quot;8081:80&quot;
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: &quot;&quot;
+    depends_on:
+      - db
+    networks:
+      - app_network
+
+networks:
+  app_network:
+
+volumes:
+  db_data:</code></pre>
+
+                <div class="note">
+            <p><strong>Nota:</strong> Exportar BD automático, en servicio db para incluir un volumen que copie el archivo backup.sql dentro del contenedor en la carpeta /docker-entrypoint-initdb.d/:</p>
+        </div>
+
+                        
+        <h2>4️⃣  Construir la imagen</h2>
+        <p>Listo para trabajar en un proyecto PHP y base de datos MySQL/MariaDB en Docker:</p>
+        <pre class="line-numbers"><code class="language-batch">docker build -t php_apache .</code></pre>
+
+                        
+        <h2>5️⃣Levantar los contenedores</h2>
+        <p>Para levantar los contenedores:</p>
+        <pre class="line-numbers"><code class="language-batch">docker-compose up -d
+o
+docker-compose up -d --build</code></pre>
+
+                <div class="note">
+            <p><strong>Nota:</strong> docker-compose up -d --build hace lo siguiente: --build: Reconstruye las imágenes antes de iniciar los contenedores.  -d: Ejecuta en modo &quot;detached&quot; (en segundo plano).</p>
+        </div>
+
+                        
+        <h2>6️⃣Verificar que los contenedores están corriendo</h2>
+        <p>Para asegurarte de que tus contenedores están funcionando:</p>
+        <pre class="line-numbers"><code class="language-batch">docker ps</code></pre>
+
+                        
+        <h2>7️⃣Si deseas ver los logs de los contenedores</h2>
+        <p>Para ver los logs en tiempo real (útil si necesitas ver si algo está fallando):</p>
+        <pre class="line-numbers"><code class="language-batch">docker-compose logs -f</code></pre>
+
+                        
+        <h2>8️⃣Detener los contenedores</h2>
+        <p>Para detener todos los contenedores que están corriendo en tu proyecto:</p>
+        <pre class="line-numbers"><code class="language-batch">docker-compose down</code></pre>
+
+                <div class="note">
+            <p><strong>Nota:</strong> Esto detendría y eliminaría los contenedores y redes sin tocar los volúmenes (a menos que se añada la opción -v).</p>
+        </div>
+
+                
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-batch.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+
+</body>
+
+</html>
